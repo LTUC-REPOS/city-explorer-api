@@ -5,13 +5,8 @@ const server = express();
 const Forecast = require("./Forecast.js");
 
 server.use(cors());
-const PORT = 5000;
 
 function ServerInit() {
-  server.listen(PORT, () => {
-    console.log(`Server is up and listening on PORT : ${PORT}`);
-  });
-
   server.get("*", (req, res) => {
     res.send("Error 404, Page Not Found");
   });

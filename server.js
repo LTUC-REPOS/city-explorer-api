@@ -3,9 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const server = express();
 const Forecast = require("./Forecast.js");
+const Movies = require("./Movies");
+const PORT = process.env.PORT;
 
 server.use(cors());
-const PORT = 5000;
 
 function ServerInit() {
   server.listen(PORT, () => {
@@ -18,13 +19,23 @@ function ServerInit() {
 }
 
 server.get("/", (req, res) => {
-  res.send("<h1>Welcome To Home Page</h1>");
+  res.send("<h1>Welcome To City Explorer Home Page</h1>");
 });
 
 //localhost:50000/weather?city=''&lon=''&lat=''
 server.get("/weather", (req, res) => {
   let forecast = new Forecast(req.query);
-  res.send(forecast.response);
+  let data = forecast.extractDataFromAPI();
+  data.then((weatherData) => {
+    res.send(weatherData);
+  });
+});
+
+server.get("/movies", (req, res) => {
+  let movies = new Movies(req.query);
+  movies.extractDataFromAPI().then((data) => {
+    res.send(data);
+  });
 });
 
 ServerInit();

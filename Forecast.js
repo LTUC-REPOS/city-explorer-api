@@ -1,4 +1,6 @@
 const weatherData = require("./data/weather.json");
+const axios = require("axios");
+const WeatherModel = require("./Models/WeatherModel");
 class Forecast {
   obj = { description: ``, date: `` };
   response = [];
@@ -7,10 +9,12 @@ class Forecast {
   constructor(data) {
     console.log("Inside Class");
     this.data = data;
-    this.extractData();
+    this.extractDataFromAPI();
+    console.log("Inside Cnstructor");
+    console.log(this.response);
   }
 
-  extractData = () => {
+  extractDataFromFile = () => {
     let isCityEmpty = this.data.city == "" || this.data.city == undefined;
     let isLongitudeEmpty = this.data.long == "" || this.data.long == undefined;
     let isLatitudeEmpty = this.data.lat == "" || this.data.lat == undefined;
@@ -48,6 +52,7 @@ class Forecast {
         error: "Sorry, Can't Find any data, try again later",
         code: "401",
       };
+
       return;
     }
 
@@ -58,6 +63,55 @@ class Forecast {
       };
       return obj;
     });
+  };
+
+  CreateWeatherResponse = (selectedCity) => {
+    let foreCast = selectedCity.data.map((info) => {
+      return new WeatherModel(
+        info.low_temp,
+        info.max_temp,
+        info.weather.description,
+        info.datetime
+      );
+    });
+    return foreCast;
+  };
+
+  extractDataFromAPI = async () => {
+    let isCityEmpty = this.data.city == "" || this.data.city == undefined;
+    let isLongitudeEmpty = this.data.long == "" || this.data.long == undefined;
+    let isLatitudeEmpty = this.data.lat == "" || this.data.lat == undefined;
+    let selectedCity = "";
+    let url = `https://api.weatherbit.io/v2.0/forecast/daily?key=${process.env.WEATHER_KEY}`;
+    if (isCityEmpty && isLongitudeEmpty && isLatitudeEmpty) {
+      this.response = {
+        error: "No Data Provided",
+        code: "400",
+      };
+      return;
+    }
+
+    if (!isCityEmpty) {
+      url += "&city=" + this.data.city;
+      let weartherRes = await axios.get(url);
+      selectedCity = weartherRes.data;
+    }
+
+    if (!isLongitudeEmpty && !isLatitudeEmpty) {
+      url += "&lat=" + this.data.lat;
+      url += "&lon=" + this.data.long;
+      let weartherRes = await axios.get(url);
+      selectedCity = weartherRes.data;
+    }
+
+    if (selectedCity == "" || selectedCity == undefined) {
+      this.response = {
+        error: "Sorry, Can't Find any data, try again later",
+        code: "401",
+      };
+      return;
+    }
+    return this.CreateWeatherResponse(selectedCity);
   };
 }
 

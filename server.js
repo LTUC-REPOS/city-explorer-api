@@ -4,9 +4,11 @@ const cors = require("cors");
 const server = express();
 const Forecast = require("./Forecast.js");
 const Movies = require("./Movies");
-const PORT = process.env.PORT;
-
 server.use(cors());
+const PORT = process.env.PORT;
+const MemoryData = require("./SaveInMemory");
+
+let memoryData = new MemoryData();
 
 function ServerInit() {
   server.listen(PORT, () => {
@@ -22,7 +24,6 @@ server.get("/", (req, res) => {
   res.send("<h1>Welcome To City Explorer Home Page</h1>");
 });
 
-//localhost:50000/weather?city=''&lon=''&lat=''
 server.get("/weather", (req, res) => {
   let forecast = new Forecast(req.query);
   let data = forecast.extractDataFromAPI();
@@ -32,10 +33,20 @@ server.get("/weather", (req, res) => {
 });
 
 server.get("/movies", (req, res) => {
-  let movies = new Movies(req.query);
-  movies.extractDataFromAPI().then((data) => {
+  let cityName = req.query.city;
+
+  if (memoryData.CheckIfExists(cityName)) {
+    console.log("Getting Data From Memory");
+    let data = memoryData.ReadFromMemory(cityName);
     res.send(data);
-  });
+  } else {
+    console.log("Getting Data From API");
+    let movies = new Movies(req.query);
+    movies.extractDataFromAPI().then((result) => {
+      memoryData.SaveToMemory(cityName, result);
+      res.send(result);
+    });
+  }
 });
 
 ServerInit();

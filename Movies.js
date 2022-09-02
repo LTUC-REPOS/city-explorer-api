@@ -8,15 +8,6 @@ class Movies {
     this.data = data;
     this.extractDataFromAPI();
   }
-  /*
-      this.title = title;
-    this.overview = desc;
-    this.average_votes = avgVotes;
-    this.total_votes = totalVotes;
-    this.image_url = poster;
-    this.popularity = populartiy;
-    this.released_on = relaseDate;
-  */
 
   CreateMoviesResponse = (moviesArray) => {
     let result = moviesArray.results.map((movie) => {
